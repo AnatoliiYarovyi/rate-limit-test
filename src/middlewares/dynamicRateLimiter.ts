@@ -1,6 +1,8 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response, NextFunction } from 'express';
 
+import { ApiKeysCache } from '../interfaces/App';
+
 const dynamicRateLimiter = (options: { windowMs: number }) => {
 	const apiLimiter = rateLimit({
 		windowMs: options.windowMs,
@@ -10,7 +12,22 @@ const dynamicRateLimiter = (options: { windowMs: number }) => {
 	});
 
 	function getMaxValue(req: Request) {
-		return req.app.locals.apiKeysCache[0].limit;
+		const { apiKey } = req.query;
+		const limit = req.app.locals.apiKeysCache.reduce(
+			(acc: number, el: ApiKeysCache) => {
+				if (el.apiKey === apiKey) {
+					acc = el.limit;
+				}
+
+				return acc;
+			},
+			null
+		);
+		if (!limit) {
+			throw new Error('For access, pass the apiKey parameter');
+		}
+
+		return limit;
 	}
 
 	return (req: Request, res: Response, next: NextFunction) => {
