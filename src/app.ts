@@ -4,6 +4,7 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
+import { getApiKeys } from './utils/getApiKeys';
 import keys from './routes/keys';
 
 const { PORT = 3001 } = process.env;
@@ -46,8 +47,8 @@ app.use((err, _, res, __) => {
 
 async function initializeApp() {
 	try {
-		// const result = await getApiKeys();
-		const result = 'Hello  world';
+		const result = await getApiKeys();
+		// const result = 'Hello  world';
 		app.locals.apiKeysCache = result;
 	} catch (error) {
 		console.error('initializeApp:', error);
