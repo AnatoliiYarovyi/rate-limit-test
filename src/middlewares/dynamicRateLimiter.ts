@@ -1,19 +1,25 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response, NextFunction } from 'express';
 
-const dynamicRateLimiter = (options) => {
+const dynamicRateLimiter = (options: { windowMs: number }) => {
 	const apiLimiter = rateLimit({
 		windowMs: options.windowMs,
-		max: options.max,
-		standardHeaders: options.standardHeaders,
-		legacyHeaders: options.legacyHeaders,
+		max: getMaxValue,
+		standardHeaders: true,
+		legacyHeaders: false,
 	});
+
+	function getMaxValue(req: Request) {
+		return req.app.locals.apiKeysCache[0].limit;
+	}
 
 	return (req: Request, res: Response, next: NextFunction) => {
 		try {
 			apiLimiter(req, res, next);
 		} catch (error) {
-			res.status(429).json({ message: 'Превышен лимит запросов' });
+			res
+				.status(429)
+				.json({ message: 'Too many requests, please try again later.' });
 		}
 	};
 };
