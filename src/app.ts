@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 dotenv.config();
+import { startDynamoDBStream } from './utils/dynamodbStream';
 
 import { getApiKeys } from './utils/getApiKeys';
 import keys from './routes/keys';
@@ -56,10 +57,16 @@ async function initializeApp() {
 }
 
 initializeApp()
-	.then(() => {
-		app.listen(PORT, () => {
-			console.info(`Server running. Use our API on port: ${PORT}`);
-		});
+	.then(async () => {
+		try {
+			app.listen(PORT, () => {
+				console.info(`Server running. Use our API on port: ${PORT}`);
+			});
+			await startDynamoDBStream(app);
+		} catch (error) {
+			console.error('Error getting the shard iterator:', error);
+			throw error;
+		}
 	})
 	.catch((error) => {
 		console.error(error);
