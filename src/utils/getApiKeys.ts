@@ -30,5 +30,6 @@ export const getApiKeys = async () => {
 		return apiKeys;
 	} catch (error) {
 		console.error('getApiKeys:', error);
+		throw error;
 	}
 };
