@@ -11,7 +11,7 @@ dotenv.config();
 
 import { ApiKeysCache } from '../interfaces/App';
 
-const { REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, ARN_TABLE } =
+const { REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, STREAM_ARN_TABLE } =
 	process.env;
 
 const dynamodbStreamsClient = new DynamoDBStreamsClient({
@@ -23,6 +23,8 @@ const dynamodbStreamsClient = new DynamoDBStreamsClient({
 });
 
 const processDynamoDBStream = (record: _Record, app: Express) => {
+	console.log('apiKeysCacheOld:', app.locals.apiKeysCache);
+
 	const id = record.dynamodb.Keys.id.S;
 	const { apiKey, limit } = record.dynamodb.NewImage;
 
@@ -40,6 +42,8 @@ const processDynamoDBStream = (record: _Record, app: Express) => {
 			limit: +limit.N,
 		});
 	}
+
+	console.log('apiKeysCacheNew:', app.locals.apiKeysCache);
 };
 
 const readStream = async (shardIterator: string, app: Express) => {
@@ -62,7 +66,7 @@ const readStream = async (shardIterator: string, app: Express) => {
 };
 
 const getShardIterator = async (app: Express) => {
-	const streamArn = ARN_TABLE;
+	const streamArn = STREAM_ARN_TABLE;
 
 	const describeStreamCommand = new DescribeStreamCommand({
 		StreamArn: streamArn,
