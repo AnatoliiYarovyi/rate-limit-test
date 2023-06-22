@@ -4,7 +4,7 @@ import { Request, Response, NextFunction } from 'express';
 const rateLimiter = () => {
 	const apiLimiter = rateLimit({
 		windowMs: 10 * 1000 /* 10s */,
-		max: 3,
+		max: 2,
 		standardHeaders: true,
 		legacyHeaders: false,
 	});
