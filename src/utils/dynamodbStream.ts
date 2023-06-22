@@ -58,6 +58,9 @@ const readStream = async (shardIterator: string, app: Express) => {
 			processDynamoDBStream(record, app);
 		}
 
+		/* Timeout === 30s */
+		await new Promise((resolve) => setTimeout(resolve, 30000));
+
 		await readStream(shardIteratorNext, app);
 	} catch (error) {
 		throw new Error(`Error reading from the stream:, ${error}`);
