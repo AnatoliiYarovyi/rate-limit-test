@@ -13,9 +13,7 @@ const rateLimiter = () => {
 		try {
 			apiLimiter(req, res, next);
 		} catch (error) {
-			res
-				.status(429)
-				.json({ message: 'Too many requests, please try again later.' });
+			res.status(429).json({ message: 'Too many requests, please try again later.' });
 		}
 	};
 };
