@@ -4,6 +4,7 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 dotenv.config();
 import { startDynamoDBStream } from './utils/dynamodbStream';
+import rateLimiter from './middlewares/rateLimiter';
 
 import { getApiKeys } from './utils/getApiKeys';
 import keys from './routes/keys';
@@ -32,6 +33,7 @@ app.use(
 		credentials: true,
 	})
 );
+app.use(rateLimiter());
 app.use(express.json());
 app.use(cookieParser());
 
