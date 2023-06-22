@@ -2,6 +2,6 @@
   "watch": ["src"],
   "ignore": ["./db", "src/**/*.test.ts"],
   "ext": "ts,mjs,js,json,graphql",
-  "exec": "etsc && node ./dist/app.js",
+  "exec": "rm -rf ./dist/* && etsc && node ./dist/app.js",
   "legacyWatch": true
 }
