@@ -3,6 +3,8 @@ import { Request, Response, NextFunction } from 'express';
 
 import { ApiKeysCache } from '../interfaces/App';
 
+const { REQUEST_LIMIT_WITHOUT_API_KEY } = process.env;
+
 const apiKeyRateLimiter = (options: { windowMs: number }) => {
 	const apiLimiter = rateLimit({
 		windowMs: options.windowMs,
@@ -13,19 +15,15 @@ const apiKeyRateLimiter = (options: { windowMs: number }) => {
 
 	function getMaxValue(req: Request) {
 		const { apiKey } = req.query;
-		const limit = req.app.locals.apiKeysCache.reduce(
-			(acc: number, el: ApiKeysCache) => {
-				if (el.apiKey === apiKey) {
-					acc = el.limit;
-				}
+		const limit = apiKey
+			? req.app.locals.apiKeysCache.reduce((acc: number, el: ApiKeysCache) => {
+					if (el.apiKey === apiKey) {
+						acc = el.limit;
+					}
 
-				return acc;
-			},
-			null
-		);
-		if (!limit) {
-			throw new Error('For access, pass the apiKey parameter');
-		}
+					return acc;
+			  }, null)
+			: +REQUEST_LIMIT_WITHOUT_API_KEY;
 
 		return limit;
 	}
@@ -34,9 +32,7 @@ const apiKeyRateLimiter = (options: { windowMs: number }) => {
 		try {
 			apiLimiter(req, res, next);
 		} catch (error) {
-			res
-				.status(429)
-				.json({ message: 'Too many requests, please try again later.' });
+			res.status(429).json({ message: 'Too many requests, please try again later.' });
 		}
 	};
 };
