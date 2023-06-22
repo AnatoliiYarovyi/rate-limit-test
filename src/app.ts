@@ -23,10 +23,7 @@ app.use(
 			'x-requested-with',
 			'Access-Control-Allow-Origin',
 		],
-		exposedHeaders: [
-			'Access-Control-Allow-Headers',
-			'Access-Control-Allow-Origin',
-		],
+		exposedHeaders: ['Access-Control-Allow-Headers', 'Access-Control-Allow-Origin'],
 		preflightContinue: false,
 		optionsSuccessStatus: 204,
 		credentials: true,
