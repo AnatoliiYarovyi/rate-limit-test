@@ -6,8 +6,7 @@ import {
 	GetShardIteratorCommand,
 	_Record,
 } from '@aws-sdk/client-dynamodb-streams';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
 
 import { ApiKeysCache } from '../interfaces/App';
 

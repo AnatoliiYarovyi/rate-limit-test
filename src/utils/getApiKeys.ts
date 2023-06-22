@@ -1,6 +1,5 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
 
 const { REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env;
 

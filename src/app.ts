@@ -1,8 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
 import { startDynamoDBStream } from './utils/dynamodbStream';
 import rateLimiter from './middlewares/rateLimiter';
 
