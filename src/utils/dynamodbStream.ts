@@ -10,8 +10,7 @@ import 'dotenv/config';
 
 import { ApiKeysCache } from '../interfaces/App';
 
-const { REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, STREAM_ARN_TABLE } =
-	process.env;
+const { REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, STREAM_ARN_TABLE } = process.env;
 
 const dynamodbStreamsClient = new DynamoDBStreamsClient({
 	region: REGION,
@@ -83,9 +82,7 @@ const getShardIterator = async (app: Express) => {
 			StreamArn: streamArn,
 		});
 
-		const iteratorResponse = await dynamodbStreamsClient.send(
-			getShardIteratorCommand
-		);
+		const iteratorResponse = await dynamodbStreamsClient.send(getShardIteratorCommand);
 		const shardIterator = iteratorResponse.ShardIterator;
 
 		await readStream(shardIterator, app);
