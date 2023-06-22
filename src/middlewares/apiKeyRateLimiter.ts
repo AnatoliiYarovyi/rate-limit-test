@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 
 import { ApiKeysCache } from '../interfaces/App';
 
-const dynamicRateLimiter = (options: { windowMs: number }) => {
+const apiKeyRateLimiter = (options: { windowMs: number }) => {
 	const apiLimiter = rateLimit({
 		windowMs: options.windowMs,
 		max: getMaxValue,
@@ -41,4 +41,4 @@ const dynamicRateLimiter = (options: { windowMs: number }) => {
 	};
 };
 
-export default dynamicRateLimiter;
+export default apiKeyRateLimiter;
