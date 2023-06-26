@@ -9,16 +9,11 @@ import {
 import 'dotenv/config';
 
 import { ApiKeysCache } from '../interfaces/App';
+import makeParallelRequests from './test';
 
-const { REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, STREAM_ARN_TABLE } = process.env;
+const { REGION, STREAM_ARN_TABLE } = process.env;
 
-const dynamodbStreamsClient = new DynamoDBStreamsClient({
-	region: REGION,
-	credentials: {
-		accessKeyId: AWS_ACCESS_KEY_ID,
-		secretAccessKey: AWS_SECRET_ACCESS_KEY,
-	},
-});
+const dynamodbStreamsClient = new DynamoDBStreamsClient({ region: REGION });
 
 const processDynamoDBStream = (record: _Record, app: Express) => {
 	console.log('apiKeysCacheOld:', app.locals.apiKeysCache);
@@ -42,9 +37,23 @@ const processDynamoDBStream = (record: _Record, app: Express) => {
 	}
 
 	console.log('apiKeysCacheNew:', app.locals.apiKeysCache);
+	makeParallelRequests()
+		.then((responses) => {
+			console.log('Responses:', responses);
+		})
+		.catch((error) => {
+			console.error('Error:', error.response.status);
+		});
 };
 
 const readStream = async (shardIterator: string, app: Express) => {
+	if (!shardIterator) {
+		console.error('Invalid ShardIterator: Missing ShardIterator');
+		// Возможно, выполните некоторые действия, такие как повторное получение итератора
+		// или прекращение чтения потока
+		return;
+	}
+
 	const getRecordsCommand = new GetRecordsCommand({
 		ShardIterator: shardIterator,
 	});
@@ -53,16 +62,40 @@ const readStream = async (shardIterator: string, app: Express) => {
 		const records = await dynamodbStreamsClient.send(getRecordsCommand);
 		const shardIteratorNext = records.NextShardIterator;
 
-		for (const record of records.Records) {
-			processDynamoDBStream(record, app);
+		if (shardIteratorNext) {
+			let maxDelay = 500;
+
+			for (const record of records.Records) {
+				processDynamoDBStream(record, app);
+
+				if (record?.dynamodb?.ApproximateCreationDateTime) {
+					const delay =
+						Date.now() -
+						new Date(record.dynamodb.ApproximateCreationDateTime).getTime();
+					console.log('delay', delay);
+
+					maxDelay = Math.max(maxDelay, delay);
+				}
+			}
+
+			if (maxDelay > 0) {
+				// Используйте максимальную задержку для определения времени задержки перед следующим чтением
+				const delay = maxDelay;
+				await new Promise((resolve) => setTimeout(resolve, delay));
+			}
+			// console.log('start readStream');
+
+			await readStream(shardIteratorNext, app);
+		} else {
+			// Обработка ошибки отсутствия действительного итератора шарда
+			console.error('Invalid ShardIterator: Missing ShardIterator');
+			// Возможно, выполните некоторые действия, такие как повторное получение итератора
+			// или прекращение чтения потока
 		}
-
-		/* Timeout === 30s */
-		await new Promise((resolve) => setTimeout(resolve, 30000));
-
-		await readStream(shardIteratorNext, app);
 	} catch (error) {
-		throw new Error(`Error reading from the stream:, ${error}`);
+		console.error('Error reading from the stream:', error);
+		// Обработка других ошибок чтения потока
+		// Возможно, выполните некоторые действия, такие как повторное чтение или прекращение чтения потока
 	}
 };
 
@@ -76,18 +109,29 @@ const getShardIterator = async (app: Express) => {
 	try {
 		const streamInfo = await dynamodbStreamsClient.send(describeStreamCommand);
 		const shardIteratorType = 'LATEST';
-		const getShardIteratorCommand = new GetShardIteratorCommand({
-			ShardId: streamInfo.StreamDescription.Shards[0].ShardId,
-			ShardIteratorType: shardIteratorType,
-			StreamArn: streamArn,
+		const shardIds = streamInfo.StreamDescription.Shards.map((shard) => shard.ShardId);
+
+		const readStreamPromises = shardIds.map(async (shardId) => {
+			const getShardIteratorCommand = new GetShardIteratorCommand({
+				ShardId: shardId,
+				ShardIteratorType: shardIteratorType,
+				StreamArn: streamArn,
+			});
+
+			const iteratorResponse = await dynamodbStreamsClient.send(getShardIteratorCommand);
+			const shardIterator = iteratorResponse.ShardIterator;
+
+			await readStream(shardIterator, app);
 		});
 
-		const iteratorResponse = await dynamodbStreamsClient.send(getShardIteratorCommand);
-		const shardIterator = iteratorResponse.ShardIterator;
-
-		await readStream(shardIterator, app);
+		await Promise.all(readStreamPromises);
 	} catch (error) {
-		throw new Error(`Error getting the shard iterator:, ${error}`);
+		console.error('Error getting the shard iterator:', error);
+		// Попробуйте выполнить обработку ошибок или повторить получение итератора
+		// в зависимости от проблемы
+	} finally {
+		dynamodbStreamsClient.destroy();
+		// Освободить ресурсы (например, закрыть соединение с DynamoDB Streams)
 	}
 };
 
@@ -95,6 +139,8 @@ export const startDynamoDBStream = async (app: Express) => {
 	try {
 		await getShardIterator(app);
 	} catch (error) {
-		throw new Error(`startDynamoDBStream:, ${error}`);
+		console.error('startDynamoDBStream:', error);
+		// Попробуйте выполнить обработку ошибок или повторить запуск потока
+		// в зависимости от проблемы
 	}
 };
