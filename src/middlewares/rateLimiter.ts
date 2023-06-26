@@ -3,8 +3,8 @@ import { Request, Response, NextFunction } from 'express';
 
 const rateLimiter = () => {
 	const apiLimiter = rateLimit({
-		windowMs: 10 * 1000 /* 10s */,
-		max: 2,
+		windowMs: 3 * 1000 /* 1s */,
+		max: 5,
 		standardHeaders: true,
 		legacyHeaders: false,
 	});
@@ -13,7 +13,7 @@ const rateLimiter = () => {
 		try {
 			apiLimiter(req, res, next);
 		} catch (error) {
-			res.status(429).json({ message: 'Too many requests, please try again later.' });
+			res.status(429).json({ message: 'Too many requests, please try again later.' }); 
 		}
 	};
 };
