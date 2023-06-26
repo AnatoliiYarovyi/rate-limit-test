@@ -1,13 +1,27 @@
 const http = require('http');
 
-const ipAddresses = ['192.168.0.1', '10.0.0.1', '172.16.0.1'];
+const ipAddresses = [
+	'172.16.0.3',
+	'172.16.0.3',
+	'172.16.0.3',
+	'172.16.0.1',
+	'192.168.0.2',
+	'10.0.0.3',
+	'10.0.0.3',
+	'192.168.0.3',
+	'192.168.0.1',
+	'10.0.0.1',
+	'192.168.0.1',
+	'10.0.0.1',
+];
 const endpoint = 'http://localhost:3000/keys';
 
 function sendRequest(ip) {
 	const options = {
 		hostname: 'localhost',
 		port: 3000,
-		path: '/keys',
+		// path: '/keys',
+		path: '/keys?apiKey=2',
 		method: 'GET',
 		headers: {
 			'X-Forwarded-For': ip,
@@ -22,7 +36,8 @@ function sendRequest(ip) {
 		});
 
 		res.on('end', () => {
-			console.log(`Response from ${ip}: ${data}`);
+			let message = data.includes('Too many requests') ? data : `Successful ✅`;
+			console.log(`Response from ${ip}: ${message}`);
 		});
 	});
 
