@@ -9,7 +9,6 @@ import {
 import 'dotenv/config';
 
 import { ApiKeysCache } from '../interfaces/App';
-import makeParallelRequests from './test';
 
 const { REGION, STREAM_ARN_TABLE } = process.env;
 
@@ -37,13 +36,6 @@ const processDynamoDBStream = (record: _Record, app: Express) => {
 	}
 
 	console.log('apiKeysCacheNew:', app.locals.apiKeysCache);
-	makeParallelRequests()
-		.then((responses) => {
-			console.log('Responses:', responses);
-		})
-		.catch((error) => {
-			console.error('Error:', error.response.status);
-		});
 };
 
 const readStream = async (shardIterator: string, app: Express) => {
