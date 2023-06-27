@@ -87,7 +87,7 @@ export const limiterPerClientApiKey = () => {
 	};
 };
 
-export const limiterPerClient = () => {
+export const limiterPerClientIp = () => {
 	const apiLimiter = rateLimit({
 		windowMs: 60 * 1000, // 60 seconds
 		max: 7,
@@ -99,18 +99,18 @@ export const limiterPerClient = () => {
 	});
 
 	function getKey(req: Request) {
-			if (req.headers['x-forwarded-for']) {
-				if (
-					Array.isArray(req.headers['x-forwarded-for']) &&
-					req.headers['x-forwarded-for'].length
-				) {
-					return req.headers['x-forwarded-for'][0];
-				} else {
-					return req.headers['x-forwarded-for'] as string;
-				}
+		if (req.headers['x-forwarded-for']) {
+			if (
+				Array.isArray(req.headers['x-forwarded-for']) &&
+				req.headers['x-forwarded-for'].length
+			) {
+				return req.headers['x-forwarded-for'][0];
 			} else {
-				return req.ip;
+				return req.headers['x-forwarded-for'] as string;
 			}
+		} else {
+			return req.ip;
+		}
 	}
 
 	return (req: Request, res: Response, next: NextFunction) => {
