@@ -1,4 +1,4 @@
-const http = require('http');
+const axios = require('axios');
 
 const ipAddresses = [
 	'172.16.0.3',
@@ -14,44 +14,37 @@ const ipAddresses = [
 	'192.168.0.1',
 	'10.0.0.1',
 ];
-const endpoint = 'http://localhost:3000/';
+const endpoint = 'http://localhost:3000/apiKey';
+// const endpoint = 'http://localhost:3000/noApiKey';
 
-function sendRequest(ip) {
-	const options = {
-		hostname: 'localhost',
-		port: 3000,
-		// path: '/apiKey',
-		// path: '/noApiKey',
-		path: '/apiKey?apiKey=2',
-		method: 'GET',
-		headers: {
-			'X-Forwarded-For': ip,
-		},
-	};
-
-	const req = http.request(options, (res) => {
-		let data = '';
-
-		res.on('data', (chunk) => {
-			data += chunk;
+async function sendRequest(ip) {
+	try {
+		const response = await axios.get(endpoint, {
+			headers: {
+				'X-Forwarded-For': ip,
+			},
 		});
 
-		res.on('end', () => {
-			let message = data.includes('limiter') ? data : `Successful ✅`;
-			console.log(`Response from ${ip}: ${message}`);
-		});
-	});
-
-	req.on('error', (error) => {
-		console.error(`Error occurred for ${ip}: ${error}`);
-	});
-
-	req.end();
+		let message = response.data.data ? `Successful` : response.data;
+		console.log(`✅ Response from ${ip}: ${message}`);
+	} catch (error) {
+		if (error.response) {
+			console.error(
+				`❌ Error occurred for ${ip}: ${error.response.data} --> ${error.response.status}`
+			);
+		} else {
+			console.error(`Error occurred for ${ip}: ${error.message}`);
+		}
+	}
 }
 
-function sendRequests() {
-	for (const ip of ipAddresses) {
-		sendRequest(ip);
+async function sendRequests() {
+	try {
+		for (const ip of ipAddresses) {
+			await sendRequest(ip);
+		}
+	} catch (error) {
+		console.error('Error sending requests:', error);
 	}
 }
 
