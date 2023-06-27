@@ -7,7 +7,7 @@ const { REQUEST_LIMIT_WITHOUT_API_KEY } = process.env;
 
 export const limiterPerSystem = () => {
 	const apiLimiter = rateLimit({
-		windowMs: 15 * 1000, // 15 seconds
+		windowMs: 10 * 1000, // 15 seconds
 		max: (req, res) => {
 			const max = req.originalUrl.startsWith('/apiKey') ? 11 : 10;
 			return max;
