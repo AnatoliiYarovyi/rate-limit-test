@@ -22,6 +22,7 @@ async function sendRequest(ip) {
 		const response = await axios.get(endpoint, {
 			headers: {
 				'X-Forwarded-For': ip,
+				// 'x-api-key': 2
 			},
 		});
 
