@@ -2,11 +2,13 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import 'dotenv/config';
-import { startDynamoDBStream } from './utils/dynamodbStream';
-import rateLimiter from './middlewares/rateLimiter';
 
+import { startDynamoDBStream } from './utils/dynamodbStream';
+import { limiterPerSystem } from './middlewares/rateLimiters';
 import { getApiKeys } from './utils/getApiKeys';
-import keys from './routes/keys';
+
+import apiKey from './routes/apiKey';
+import noApiKey from './routes/noApiKey';
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -29,11 +31,12 @@ app.use(
 		credentials: true,
 	})
 );
-app.use(rateLimiter());
 app.use(express.json());
+app.use(limiterPerSystem());
 app.use(cookieParser());
 
-app.use('/keys', keys);
+app.use('/apiKey', apiKey);
+app.use('/noApiKey', noApiKey);
 
 app.use((_, res) => {
 	res.status(404).json({ message: 'Not found' });

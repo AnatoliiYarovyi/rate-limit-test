@@ -18,12 +18,7 @@ const apiKeyRateLimiter = (options: { windowMs: number }) => {
 		message: 'Too many requests, please try again later. [ apiKeyRateLimiter ]',
 	});
 
-	function getMaxValue(req: Request) {
-		console.log('request.ip', req.ip);
-		console.log(`req.headers['x-forwarded-for']`, req.headers['x-forwarded-for']);
-		console.log('req.socket.remoteAddress', req.socket.remoteAddress);
-		
-		
+	function getMaxValue(req: Request) {		
 		const { apiKey } = req.query;
 		const limit = apiKey
 			? req.app.locals.apiKeysCache.reduce((acc: number, el: ApiKeysCache) => {

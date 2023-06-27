@@ -14,14 +14,15 @@ const ipAddresses = [
 	'192.168.0.1',
 	'10.0.0.1',
 ];
-const endpoint = 'http://localhost:3000/keys';
+const endpoint = 'http://localhost:3000/';
 
 function sendRequest(ip) {
 	const options = {
 		hostname: 'localhost',
 		port: 3000,
-		// path: '/keys',
-		path: '/keys?apiKey=2',
+		// path: '/apiKey',
+		// path: '/noApiKey',
+		path: '/apiKey?apiKey=2',
 		method: 'GET',
 		headers: {
 			'X-Forwarded-For': ip,
@@ -36,7 +37,7 @@ function sendRequest(ip) {
 		});
 
 		res.on('end', () => {
-			let message = data.includes('Too many requests') ? data : `Successful ✅`;
+			let message = data.includes('limiter') ? data : `Successful ✅`;
 			console.log(`Response from ${ip}: ${message}`);
 		});
 	});
