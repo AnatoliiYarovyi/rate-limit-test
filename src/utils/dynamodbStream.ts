@@ -17,25 +17,24 @@ const dynamodbStreamsClient = new DynamoDBStreamsClient({ region: REGION });
 const processDynamoDBStream = (record: _Record, app: Express) => {
 	console.log('apiKeysCacheOld:', app.locals.apiKeysCache);
 
-	const id = record.dynamodb.Keys.id.S;
-	const { apiKey, limit } = record.dynamodb.NewImage;
+	const apiKey = record.dynamodb.Keys.apiKey.S;
+	const { id, limit } = record.dynamodb.NewImage;
 
 	const index = app.locals.apiKeysCache.findIndex(
-		(apiKeyData: ApiKeysCache) => apiKeyData.id === id
+		(apiKeyData: ApiKeysCache) => apiKeyData.apiKey === apiKey
 	);
 
 	if (index >= 0) {
-		app.locals.apiKeysCache[index].apiKey = apiKey.S.toString();
 		app.locals.apiKeysCache[index].limit = +limit.N;
 	} else {
 		app.locals.apiKeysCache.push({
-			id,
-			apiKey: apiKey.S.toString(),
+			id: id.S,
+			apiKey,
 			limit: +limit.N,
 		});
 	}
 
-	console.log('apiKeysCacheNew:', app.locals.apiKeysCache);
+	console.log('apiKeysCacheNew:', app.locals.apiKeysCache); 
 };
 
 const readStream = async (shardIterator: string, app: Express) => {

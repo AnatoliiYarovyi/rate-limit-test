@@ -1,7 +1,7 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
 import 'dotenv/config';
 
-const { REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env;
+const { REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, TABLE_NAME } = process.env;
 
 const dynamoDBClient = new DynamoDBClient({
 	region: REGION,
@@ -14,11 +14,11 @@ const dynamoDBClient = new DynamoDBClient({
 export const getApiKeys = async () => {
 	try {
 		const params = {
-			TableName: 'api-keys-test',
+			TableName: TABLE_NAME,
 		};
 		const command = new ScanCommand(params);
 		const response = await dynamoDBClient.send(command);
-
+		
 		const apiKeys = response.Items.map((item) => {
 			return {
 				id: item.id.S,

@@ -7,6 +7,8 @@ import { startDynamoDBStream } from './utils/dynamodbStream';
 import { limiterPerSystem } from './middlewares/rateLimiters';
 import { getApiKeys } from './utils/getApiKeys';
 
+
+import db from './routes/db';
 import apiKey from './routes/apiKey';
 import noApiKey from './routes/noApiKey';
 
@@ -35,6 +37,7 @@ app.use(express.json());
 app.use(limiterPerSystem());
 app.use(cookieParser());
 
+app.use('/db', db)
 app.use('/apiKey', apiKey);
 app.use('/noApiKey', noApiKey);
 
