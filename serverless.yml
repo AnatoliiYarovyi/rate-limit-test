@@ -1,0 +1,31 @@
+service: my-service
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+  iam:
+      role:
+          statements:
+              - Effect: Allow
+                Action:
+                    - dynamodb:*
+                Resource: '*'
+
+resources:
+  Resources:
+    MyDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: api-keys-test-serverless
+        AttributeDefinitions:
+          - AttributeName: apiKey
+            AttributeType: S
+        KeySchema:
+          - AttributeName: apiKey
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
