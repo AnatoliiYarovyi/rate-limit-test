@@ -47,6 +47,7 @@ const readStream = async (shardIterator: string, app: Express) => {
 
 	const getRecordsCommand = new GetRecordsCommand({
 		ShardIterator: shardIterator,
+		Limit: 100,
 	});
 
 	try {
@@ -71,10 +72,8 @@ const readStream = async (shardIterator: string, app: Express) => {
 
 			if (maxDelay > 0) {
 				// Используйте максимальную задержку для определения времени задержки перед следующим чтением
-				const delay = maxDelay;
-				await new Promise((resolve) => setTimeout(resolve, delay));
+				await new Promise((resolve) => setImmediate(resolve));
 			}
-			// console.log('start readStream');
 
 			await readStream(shardIteratorNext, app);
 		} else {
@@ -84,9 +83,15 @@ const readStream = async (shardIterator: string, app: Express) => {
 			// или прекращение чтения потока
 		}
 	} catch (error) {
-		console.error('Error reading from the stream:', error);
-		// Обработка других ошибок чтения потока
-		// Возможно, выполните некоторые действия, такие как повторное чтение или прекращение чтения потока
+		if (error.name === 'ExpiredIteratorException') {
+			console.error('ExpiredIteratorException: Shard iterator has expired');
+			// Повторное получение итератора шарда и повторное чтение потока
+			await getShardIterator(app);
+		} else {
+			console.error('Error reading from the stream:', error);
+			// Обработка других ошибок чтения потока
+			// Возможно, выполните некоторые действия, такие как повторное чтение или прекращение чтения потока
+		}
 	}
 };
 
