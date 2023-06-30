@@ -72,8 +72,9 @@ const readStream = async (shardIterator: string, app: Express) => {
 
 			if (maxDelay > 0) {
 				// Используйте максимальную задержку для определения времени задержки перед следующим чтением
-				await new Promise((resolve) => setImmediate(resolve));
+				await new Promise((resolve) => setTimeout(resolve, maxDelay));
 			}
+			
 
 			await readStream(shardIteratorNext, app);
 		} else {

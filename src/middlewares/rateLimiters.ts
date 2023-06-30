@@ -5,6 +5,22 @@ import { ApiKeysCache } from '../interfaces/App';
 
 const { REQUEST_LIMIT_WITHOUT_API_KEY } = process.env;
 
+const changeNumberOfQueriesByApiKey = async (req: Request) => {
+	const {apiKey} = req.query;
+	const apiKeysCache = req.app.locals.apiKeysCache as ApiKeysCache[];
+
+	apiKeysCache.forEach((el) => {
+		if (el.apiKey === apiKey) {			
+			el.date = new Date().getTime();
+			if (!el.quantity) {
+				el.quantity = 1;
+			} else {
+				el.quantity += 1;
+			}
+		}
+	});
+};
+
 export const limiterPerSystem = () => {
 	const apiLimiter = rateLimit({
 		windowMs: 10 * 1000, // 15 seconds
@@ -42,7 +58,7 @@ export const limiterPerClientApiKey = () => {
 	});
 
 	function getMaxValue(req: Request) {
-		const apiKey  = req.headers['x-api-key'];
+		const apiKey = req.headers['x-api-key'];
 		const limit: number = apiKey
 			? req.app.locals.apiKeysCache.reduce((acc: number, el: ApiKeysCache) => {
 					if (el.apiKey === apiKey) {
@@ -78,6 +94,7 @@ export const limiterPerClientApiKey = () => {
 	return (req: Request, res: Response, next: NextFunction) => {
 		try {
 			apiLimiter(req, res, next);
+			changeNumberOfQueriesByApiKey(req);
 		} catch (error) {
 			res.status(429).json({
 				message:
@@ -201,3 +218,4 @@ export const rateLimiterPerApiKey = () => {
 		}
 	};
 };
+

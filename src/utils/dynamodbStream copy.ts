@@ -20,7 +20,7 @@ const dynamodbStreamsClient = new DynamoDBStreamsClient({
 	},
 });
 
-const processDynamoDBStream = (record: _Record, app: Express) => {
+const processDynamoDBStream = (record: _Record, app: Express) => { 
 	console.log('apiKeysCacheOld:', app.locals.apiKeysCache);
 
 	const id = record.dynamodb.Keys.id.S;

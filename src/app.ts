@@ -2,9 +2,11 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import 'dotenv/config';
+import cron from 'node-cron';
 
 import { startDynamoDBStream } from './utils/dynamodbStream';
 import { limiterPerSystem } from './middlewares/rateLimiters';
+import { updateDatabase, resetQuantityAtMidnight } from './utils/updateDatabase';
 import { getApiKeys } from './utils/getApiKeys';
 
 
@@ -60,13 +62,21 @@ async function initializeApp() {
 	}
 }
 
+cron.schedule('*/2 * * * *', async () => {
+	await updateDatabase(app);
+});
+
+cron.schedule('0 0 * * *', async () => {
+	resetQuantityAtMidnight(app)
+});
+
 initializeApp()
 	.then(async () => {
 		try {
 			app.listen(PORT, () => {
 				console.info(`Server running. Use our API on port: ${PORT}`);
 			});
-			await startDynamoDBStream(app);
+			// await startDynamoDBStream(app);
 		} catch (error) {
 			console.error('Error getting the shard iterator:', error);
 			throw error;

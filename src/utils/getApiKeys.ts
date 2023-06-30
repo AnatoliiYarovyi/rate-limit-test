@@ -19,11 +19,12 @@ export const getApiKeys = async () => {
 		const command = new ScanCommand(params);
 		const response = await dynamoDBClient.send(command);
 		
-		const apiKeys = response.Items.map((item) => {
+		const apiKeys = response.Items.map((item) => {			
 			return {
 				id: item.id.S,
 				apiKey: item.apiKey.S,
 				limit: +item.limit.N,
+				quantity: +item?.quantity?.N || 0,
 			};
 		});
 		return apiKeys;

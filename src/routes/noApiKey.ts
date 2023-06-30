@@ -6,7 +6,7 @@ import { rateLimiterPerIp, limiterPerClientIp } from '../middlewares/rateLimiter
 const router = express.Router();
 const keysCtrl = new KeysCtrl();
 
-// for apiKeyRateLimiter(limiterOptions),
+// for apiKeyRateLimiter(limiterOptions), 
 // const limiterOptions = {
 // 	windowMs: 1 * 60 * 1000, // 1 min
 // };
